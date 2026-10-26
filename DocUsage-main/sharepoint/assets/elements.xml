@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Elements xmlns="http://schemas.microsoft.com/sharepoint/">
+
+    <CustomAction
+        Title="FRED Document Usage Logger"
+        Location="ClientSideExtension.ApplicationCustomizer"
+        ClientSideComponentId="2f65806e-0938-4436-88ce-c7ccc7be639d"
+        ClientSideComponentProperties="{&quot;LoggingSiteUrl&quot;:&quot;https://nih.sharepoint.com/sites/NCI-FREDDEV2&quot;}">
+    </CustomAction>
+
+</Elements>

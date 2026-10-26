@@ -1,0 +1,21 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/spfx/client-side-extension-manifest.schema.json",
+ 
+  "id": "2f65806e-0938-4436-88ce-c7ccc7be639d",
+  "alias": "UsageLoggerFredApplicationCustomizer",
+  "componentType": "Extension",
+  "extensionType": "ApplicationCustomizer",
+  "version": "1.0.0.0",
+  "properties": {
+    "LoggingSiteUrl": "https://nih.sharepoint.com/sites/NCI-FREDDEV2",
+    "ListTitle": "Document Usage Data",
+    "ThrottleMs": 0
+ 
+  },
+ 
+   
+  "manifestVersion": 2,
+ 
+ 
+  "requiresCustomScript": false
+}

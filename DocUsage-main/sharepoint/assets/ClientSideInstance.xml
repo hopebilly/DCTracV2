@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Elements xmlns="http://schemas.microsoft.com/sharepoint/">
+    <ClientSideComponentInstance
+        Title="UsageLoggerFred"
+        Location="ClientSideExtension.ApplicationCustomizer"
+        ComponentId="2f65806e-0938-4436-88ce-c7ccc7be639d"
+        Properties="{&quot;testMessage&quot;:&quot;Test message&quot;}">
+    </ClientSideComponentInstance>
+</Elements>

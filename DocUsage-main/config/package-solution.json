@@ -1,0 +1,45 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/spfx-build/package-solution.schema.json",
+  "solution": {
+    "name": "Fred-Prod-Doc-Usage",
+    "id": "b90aa60e-8ad9-4573-ac7d-25c33dff5be0",
+    "version": "1.0.0.1",
+    "includeClientSideAssets": true,
+    "skipFeatureDeployment": false,
+    "isDomainIsolated": false,
+    "developer": {
+      "name": "",
+      "websiteUrl": "",
+      "privacyUrl": "",
+      "termsOfUseUrl": "",
+      "mpnId": "Undefined-1.21.1"
+    },
+    "metadata": {
+      "shortDescription": {
+        "default": "FRED Document Usage Logger"
+      },
+      "longDescription": {
+        "default": "Tracks FRED document usage and records document interactions."
+      },
+      "screenshotPaths": [],
+      "videoUrl": "",
+      "categories": []
+    },
+    "features": [
+      {
+        "title": "Document Usage Application Extension",
+        "description": "Deploys the FRED Document Usage Application Customizer",
+        "id": "1f6e4130-549c-486a-b6e0-aac637019c63",
+        "version": "1.0.0.1",
+        "assets": {
+          "elementManifests": [
+            "elements.xml"
+          ]
+        }
+      }
+    ]
+  },
+  "paths": {
+    "zippedPackage": "solution/Prod-Doc-usage-log.sppkg"
+  }
+}
