@@ -119,16 +119,21 @@ await this._addItem(
 
 
           // Find the closest clicked link
-          const anchor =
-            target.closest('a') as HTMLAnchorElement;
+const anchor =
+  target.closest('a') as HTMLAnchorElement;
 
-          if (!anchor || !anchor.href) {
-            return;
-          }
+if (!anchor || !anchor.href) {
+  return;
+}
 
+console.log(
+  'FRED DOCUMENT CLICK:',
+  anchor.href,
+  anchor.innerText
+);
 
-          const documentUrl =
-            anchor.href;
+const documentUrl =
+  anchor.href;
 
 
           // Only continue when the clicked URL is a document
@@ -169,50 +174,44 @@ await this._addItem(
   // CHECK IF CLICKED URL IS A DOCUMENT
   // ============================================================
 
-  private _isDocument(url: string): boolean {
+private _isDocument(url: string): boolean {
+  try {
+    const lowerUrl = url.toLowerCase();
 
-    try {
+    const extensions: string[] = [
+      '.pdf',
+      '.doc',
+      '.docx',
+      '.xls',
+      '.xlsx',
+      '.ppt',
+      '.pptx',
+      '.csv',
+      '.txt',
+      '.zip'
+    ];
 
-      const cleanUrl =
-        url
-          .split('?')[0]
-          .toLowerCase();
-
-
-      const extensions: string[] = [
-
-        '.pdf',
-
-        '.doc',
-        '.docx',
-
-        '.xls',
-        '.xlsx',
-
-        '.ppt',
-        '.pptx',
-
-        '.csv',
-
-        '.txt',
-
-        '.zip'
-
-      ];
-
-
-      return extensions.some(
-        extension =>
-          cleanUrl.endsWith(extension)
-      );
-
-    } catch {
-
-      return false;
-
+    if (extensions.some(ext => lowerUrl.includes(ext))) {
+      return true;
     }
 
+    if (
+      lowerUrl.includes('/_layouts/15/doc.aspx') ||
+      lowerUrl.includes('/_layouts/15/wopiframe.aspx') ||
+      lowerUrl.includes('/:w:/') ||
+      lowerUrl.includes('/:x:/') ||
+      lowerUrl.includes('/:p:/') ||
+      lowerUrl.includes('/:b:/')
+    ) {
+      return true;
+    }
+
+    return false;
+
+  } catch {
+    return false;
   }
+}
 
 
   // ============================================================
