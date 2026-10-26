@@ -21,80 +21,30 @@ export default class UsageLoggerFredApplicationCustomizer
   // INITIALIZATION
   // ============================================================
 
-  public async onInit(): Promise<void> {
+public async onInit(): Promise<void> {
 
-    try {
+  try {
 
-      // ============================================================
-      // MICROSOFT CLARITY
-      // ============================================================
+    console.log('FRED DOCUMENT LOGGER LOADED');
 
-      const clarityScript = document.createElement('script');
+    // Start document tracking
+    this._initializeDocumentTracking();
 
-      clarityScript.type = 'text/javascript';
+    Log.info(
+      LOG_SOURCE,
+      'Document usage tracking initialized.'
+    );
 
-      clarityScript.text = `
-        (function(c,l,a,r,i,t,y){
-          c[a]=c[a]||function(){
-            (c[a].q=c[a].q||[]).push(arguments)
-          };
-          t=l.createElement(r);
-          t.async=1;
-          t.src="https://www.clarity.ms/tag/"+i;
-          y=l.getElementsByTagName(r)[0];
-          y.parentNode.insertBefore(t,y);
-        })(window, document, "clarity", "script", "v0ywy6glon");
-      `;
+  } catch (error) {
 
-      document.head.appendChild(clarityScript);
-
-
-      // ============================================================
-      // START DOCUMENT TRACKING
-      // ============================================================
-
-      this._initializeDocumentTracking();
-console.log('FRED DOCUMENT LOGGER LOADED');
-
-const targetSite =
-  this.properties?.LoggingSiteUrl ||
-  this.context.pageContext.web.absoluteUrl;
-
-await this._addItem(
-  targetSite,
-  'Document Usage Data',
-  {
-    DocumentName: 'TEST - Extension Loaded',
-    DocumentUrl: location.href,
-    LibraryName: '',
-    SiteUrl: this.context.pageContext.site.absoluteUrl,
-    WebUrl: this.context.pageContext.web.absoluteUrl,
-    UserDisplayName: this.context.pageContext.user.displayName || '',
-    UserEmail: this.context.pageContext.user.email || '',
-    FileType: 'test',
-    ActionType: 'ExtensionLoaded',
-    SessionId: this._ensureSessionId(),
-    SourcePageUrl: location.href,
-    DocumentUniqueId: '',
-    TimeStamp: new Date().toISOString()
-  }
-);
-
-      Log.info(
-        LOG_SOURCE,
-        'Document usage tracking initialized.'
-      );
-
-    } catch (error) {
-
-      Log.warn(
-        LOG_SOURCE,
-        error as any
-      );
-
-    }
+    Log.warn(
+      LOG_SOURCE,
+      error as any
+    );
 
   }
+
+}
 
 
   // ============================================================
@@ -225,51 +175,89 @@ private _isDocument(url: string): boolean {
     try {
 
       // Remove query string
-      const cleanUrl =
-        documentUrl.split('?')[0];
+      const parsedUrl =
+  new URL(
+    documentUrl,
+    window.location.origin
+  );
+
+let documentPath =
+  parsedUrl.searchParams.get('id') ||
+  parsedUrl.searchParams.get('SourceUrl') ||
+  parsedUrl.searchParams.get('sourceUrl') ||
+  parsedUrl.pathname;
+
+try {
+  documentPath =
+    decodeURIComponent(documentPath);
+} catch {
+  // keep original
+}
+
+let documentName =
+  parsedUrl.searchParams.get('file') || '';
+
+if (!documentName) {
+  documentName =
+    documentPath.substring(
+      documentPath.lastIndexOf('/') + 1
+    );
+}
+
+try {
+  documentName =
+    decodeURIComponent(documentName);
+} catch {
+  // keep original
+}
+
+const extensionIndex =
+  documentName.lastIndexOf('.');
+
+const fileType =
+  extensionIndex > -1
+    ? documentName
+        .substring(extensionIndex + 1)
+        .toLowerCase()
+    : '';
 
 
-      // Decode URL safely
-      let decodedUrl =
-        cleanUrl;
+// Get library name
+const webPath =
+  new URL(
+    this.context.pageContext.web.absoluteUrl
+  ).pathname.replace(/\/$/, '');
 
-      try {
+let relativePath =
+  documentPath;
 
-        decodedUrl =
-          decodeURIComponent(cleanUrl);
+if (
+  relativePath
+    .toLowerCase()
+    .startsWith(
+      webPath.toLowerCase() + '/'
+    )
+) {
+  relativePath =
+    relativePath.substring(
+      webPath.length + 1
+    );
+}
 
-      } catch {
+const pathParts =
+  relativePath
+    .split('/')
+    .filter(part => part.length > 0);
 
-        decodedUrl =
-          cleanUrl;
+let libraryName = '';
 
-      }
-
-
-      // ============================================================
-      // DOCUMENT NAME
-      // ============================================================
-
-      const documentName =
-        decodedUrl.substring(
-          decodedUrl.lastIndexOf('/') + 1
-        );
-
-
-      // ============================================================
-      // FILE TYPE
-      // ============================================================
-
-      const extensionIndex =
-        documentName.lastIndexOf('.');
-
-
-      const fileType =
-        extensionIndex > -1
-          ? documentName
-              .substring(extensionIndex + 1)
-              .toLowerCase()
-          : '';
+if (
+  pathParts.length > 1 &&
+  pathParts[0].toLowerCase() !== '_layouts'
+) {
+  libraryName =
+    pathParts[0];
+}
 
 
       // ============================================================
@@ -326,10 +314,8 @@ private _isDocument(url: string): boolean {
 
 
       // Document usage list
-      const listTitle =
-        this.properties?.ListTitle ||
-        'Document Usage Data';
-
+const listTitle =
+  'Document Usage Data';
 
       // ============================================================
       // DUPLICATE PROTECTION
@@ -339,9 +325,8 @@ private _isDocument(url: string): boolean {
       // Ignore the same document for 3 seconds.
       // ============================================================
 
-      const duplicateKey =
-        `fredDocument:${decodedUrl}`;
-
+     const duplicateKey =
+  `fredDocument:${documentPath}`;
 
       const previousClick =
         sessionStorage.getItem(
@@ -393,12 +378,11 @@ private _isDocument(url: string): boolean {
               255
             ),
 
-          DocumentUrl:
-            decodedUrl,
+         DocumentUrl:
+  documentUrl,
 
-          // Can be populated in a later version
-          LibraryName:
-            '',
+LibraryName:
+  libraryName,
 
           SiteUrl:
             siteUrl,
