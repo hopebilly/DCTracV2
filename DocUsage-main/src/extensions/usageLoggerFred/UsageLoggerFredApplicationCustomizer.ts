@@ -54,7 +54,31 @@ export default class UsageLoggerFredApplicationCustomizer
       // ============================================================
 
       this._initializeDocumentTracking();
+console.log('FRED DOCUMENT LOGGER LOADED');
 
+const targetSite =
+  this.properties?.LoggingSiteUrl ||
+  this.context.pageContext.web.absoluteUrl;
+
+await this._addItem(
+  targetSite,
+  'Document Usage Data',
+  {
+    DocumentName: 'TEST - Extension Loaded',
+    DocumentUrl: location.href,
+    LibraryName: '',
+    SiteUrl: this.context.pageContext.site.absoluteUrl,
+    WebUrl: this.context.pageContext.web.absoluteUrl,
+    UserDisplayName: this.context.pageContext.user.displayName || '',
+    UserEmail: this.context.pageContext.user.email || '',
+    FileType: 'test',
+    ActionType: 'ExtensionLoaded',
+    SessionId: this._ensureSessionId(),
+    SourcePageUrl: location.href,
+    DocumentUniqueId: '',
+    TimeStamp: new Date().toISOString()
+  }
+);
 
       Log.info(
         LOG_SOURCE,
