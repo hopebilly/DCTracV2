@@ -27,15 +27,85 @@ public async onInit(): Promise<void> {
 
     console.log('FRED DOCUMENT LOGGER LOADED');
 
-    // Start document tracking
-    this._initializeDocumentTracking();
+    // Keep document tracking running
+    //this._initializeDocumentTracking();
+
+
+    // ============================================================
+    // DEMO / EXTENSION LOAD RECORD
+    // ============================================================
+
+    const targetSite =
+      this.properties?.LoggingSiteUrl ||
+      this.context.pageContext.web.absoluteUrl;
+
+
+    await this._addItem(
+      targetSite,
+      'Document Usage Data',
+      {
+
+        DocumentName:
+          'TEST - Extension Loaded',
+
+        DocumentUrl:
+          location.href,
+
+        LibraryName:
+          'Fred Document Tracking',
+
+        SiteUrl:
+          this.context.pageContext.site.absoluteUrl,
+
+        WebUrl:
+          this.context.pageContext.web.absoluteUrl,
+
+        UserDisplayName:
+          this.context.pageContext.user.displayName || '',
+
+        UserEmail:
+          this.context.pageContext.user.email || '',
+
+        FileType:
+          'test',
+
+        ActionType:
+          'ExtensionLoaded',
+
+        SessionId:
+          this._ensureSessionId(),
+
+        SourcePageUrl:
+          location.href,
+
+        DocumentUniqueId:
+          '',
+
+        TimeStamp:
+          new Date().toISOString()
+
+      }
+    );
+
+
+    console.log(
+      'FRED DEMO DOCUMENT USAGE RECORD CREATED'
+    );
+
 
     Log.info(
       LOG_SOURCE,
       'Document usage tracking initialized.'
     );
 
+
   } catch (error) {
+
+    console.error(
+      'FRED Document logger error:',
+      error
+    );
+
 
     Log.warn(
       LOG_SOURCE,
@@ -48,414 +118,17 @@ public async onInit(): Promise<void> {
 
 
   // ============================================================
-  // DOCUMENT TRACKING
-  // ============================================================
-
-private _initializeDocumentTracking(): void {
-
-  let lastUrl =
-    window.location.href;
-
-  console.log(
-    'FRED DOCUMENT URL TRACKING REGISTERED'
-  );
-
-  window.setInterval(
-    () => {
-
-      try {
-
-        const currentUrl =
-          window.location.href;
-
-        // Nothing changed
-        if (
-          currentUrl === lastUrl
-        ) {
-          return;
-        }
-
-        lastUrl =
-          currentUrl;
-
-
-        console.log(
-          'FRED URL CHANGED:',
-          currentUrl
-        );
-
-
-        // Check whether new SharePoint URL
-        // contains a document
-        if (
-          !this._isDocument(
-            currentUrl
-          )
-        ) {
-
-          return;
-
-        }
-
-
-        console.log(
-          'FRED DOCUMENT NAVIGATION DETECTED:',
-          currentUrl
-        );
-
-
-        this._logDocumentInteraction(
-          currentUrl
-        )
-        .catch(
-          (error) => {
-
-            console.error(
-              'FRED DOCUMENT LOGGING FAILED:',
-              error
-            );
-
-            Log.warn(
-              LOG_SOURCE,
-              `Document logging failed: ${error}`
-            );
-
-          }
-        );
-
-
-      } catch (error) {
-
-        console.error(
-          'FRED DOCUMENT URL TRACKING ERROR:',
-          error
-        );
-
-      }
-
-    },
-
-    500
-  );
-
-}
-
-
-  // ============================================================
   // CHECK IF CLICKED URL IS A DOCUMENT
   // ============================================================
 
-private _isDocument(url: string): boolean {
-  try {
-    const lowerUrl = url.toLowerCase();
 
-    const extensions: string[] = [
-      '.pdf',
-      '.doc',
-      '.docx',
-      '.xls',
-      '.xlsx',
-      '.ppt',
-      '.pptx',
-      '.csv',
-      '.txt',
-      '.zip'
-    ];
-
-    if (extensions.some(ext => lowerUrl.includes(ext))) {
-      return true;
-    }
-
-    if (
-      lowerUrl.includes('/_layouts/15/doc.aspx') ||
-      lowerUrl.includes('/_layouts/15/wopiframe.aspx') ||
-      lowerUrl.includes('/:w:/') ||
-      lowerUrl.includes('/:x:/') ||
-      lowerUrl.includes('/:p:/') ||
-      lowerUrl.includes('/:b:/')
-    ) {
-      return true;
-    }
-
-    return false;
-
-  } catch {
-    return false;
-  }
-}
 
 
   // ============================================================
   // LOG DOCUMENT INTERACTION
   // ============================================================
 
-  private async _logDocumentInteraction(
-    documentUrl: string
-  ): Promise<void> {
 
-    try {
-
-      // Remove query string
-      const parsedUrl =
-  new URL(
-    documentUrl,
-    window.location.origin
-  );
-
-let documentPath =
-  parsedUrl.searchParams.get('id') ||
-  parsedUrl.searchParams.get('SourceUrl') ||
-  parsedUrl.searchParams.get('sourceUrl') ||
-  parsedUrl.pathname;
-
-try {
-  documentPath =
-    decodeURIComponent(documentPath);
-} catch {
-  // keep original
-}
-
-let documentName =
-  parsedUrl.searchParams.get('file') || '';
-
-if (!documentName) {
-  documentName =
-    documentPath.substring(
-      documentPath.lastIndexOf('/') + 1
-    );
-}
-
-try {
-  documentName =
-    decodeURIComponent(documentName);
-} catch {
-  // keep original
-}
-
-const extensionIndex =
-  documentName.lastIndexOf('.');
-
-const fileType =
-  extensionIndex > -1
-    ? documentName
-        .substring(extensionIndex + 1)
-        .toLowerCase()
-    : '';
-
-
-// Get library name
-const webPath =
-  new URL(
-    this.context.pageContext.web.absoluteUrl
-  ).pathname.replace(/\/$/, '');
-
-let relativePath =
-  documentPath;
-
-if (
-  relativePath
-    .toLowerCase()
-    .startsWith(
-      webPath.toLowerCase() + '/'
-    )
-) {
-  relativePath =
-    relativePath.substring(
-      webPath.length + 1
-    );
-}
-
-const pathParts =
-  relativePath
-    .split('/')
-    .filter(part => part.length > 0);
-
-let libraryName = '';
-
-if (
-  pathParts.length > 1 &&
-  pathParts[0].toLowerCase() !== '_layouts'
-) {
-  libraryName =
-    pathParts[0];
-}
-
-
-      // ============================================================
-      // SHAREPOINT CONTEXT
-      // ============================================================
-
-      const siteUrl =
-        this.context.pageContext.site.absoluteUrl;
-
-
-      const webUrl =
-        this.context.pageContext.web.absoluteUrl;
-
-
-      // ============================================================
-      // USER INFORMATION
-      // ============================================================
-
-      const userDisplayName =
-        (
-          this.context
-            .pageContext
-            .user
-            .displayName || ''
-        ).substring(0, 255);
-
-
-      const userEmail =
-        (
-          this.context
-            .pageContext
-            .user
-            .email || ''
-        ).substring(0, 255);
-
-
-      // ============================================================
-      // SESSION
-      // ============================================================
-
-      const sessionId =
-        this._ensureSessionId();
-
-
-      // Page where the user clicked the document
-      const sourcePageUrl =
-        location.href.split('?')[0];
-
-
-      // Central logging site
-      const targetSite =
-        this.properties?.LoggingSiteUrl ||
-        webUrl;
-
-
-      // Document usage list
-const listTitle =
-  'Document Usage Data';
-
-      // ============================================================
-      // DUPLICATE PROTECTION
-      // ============================================================
-      //
-      // SharePoint can trigger multiple browser events from one click.
-      // Ignore the same document for 3 seconds.
-      // ============================================================
-
-     const duplicateKey =
-  `fredDocument:${documentPath}`;
-
-      const previousClick =
-        sessionStorage.getItem(
-          duplicateKey
-        );
-
-
-      const currentTime =
-        Date.now();
-
-
-      if (previousClick) {
-
-        const difference =
-          currentTime -
-          Number(previousClick);
-
-
-        if (difference < 3000) {
-
-          return;
-
-        }
-
-      }
-
-
-      sessionStorage.setItem(
-        duplicateKey,
-        currentTime.toString()
-      );
-
-
-      // ============================================================
-      // SAVE TO DOCUMENT USAGE DATA
-      // ============================================================
-
-      await this._addItem(
-
-        targetSite,
-
-        listTitle,
-
-        {
-
-          DocumentName:
-            documentName.substring(
-              0,
-              255
-            ),
-
-         DocumentUrl:
-  documentUrl,
-
-LibraryName:
-  libraryName,
-
-          SiteUrl:
-            siteUrl,
-
-          WebUrl:
-            webUrl,
-
-          UserDisplayName:
-            userDisplayName,
-
-          UserEmail:
-            userEmail,
-
-          FileType:
-            fileType,
-
-          ActionType:
-            'DocumentClicked',
-
-          SessionId:
-            sessionId,
-
-          SourcePageUrl:
-            sourcePageUrl,
-
-          // Can be populated in a later version
-          DocumentUniqueId:
-            '',
-
-          TimeStamp:
-            new Date().toISOString()
-
-        }
-
-      );
-
-
-      Log.info(
-        LOG_SOURCE,
-        `Document logged: ${documentName}`
-      );
-
-    } catch (error) {
-
-      Log.warn(
-        LOG_SOURCE,
-        `Document interaction error: ${error}`
-      );
-
-    }
-
-  }
 
 
   // ============================================================
