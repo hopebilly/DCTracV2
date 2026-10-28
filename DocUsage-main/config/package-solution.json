@@ -3,7 +3,7 @@
   "solution": {
     "name": "Fred-Prod-Doc-Usage",
     "id": "b90aa60e-8ad9-4573-ac7d-25c33dff5be0",
-    "version": "1.0.0.1",
+    "version": "1.0.0.4",
     "includeClientSideAssets": true,
     "skipFeatureDeployment": false,
     "isDomainIsolated": false,

@@ -5,7 +5,7 @@
   "alias": "UsageLoggerFredApplicationCustomizer",
   "componentType": "Extension",
   "extensionType": "ApplicationCustomizer",
-  "version": "1.0.0.0",
+  "version": "1.0.0.4",
   "properties": {
     "LoggingSiteUrl": "https://nih.sharepoint.com/sites/NCI-FREDDEV2",
     "ListTitle": "Document Usage Data",
