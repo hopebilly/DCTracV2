@@ -53,9 +53,10 @@ public async onInit(): Promise<void> {
 
 private _initializeDocumentTracking(): void {
 
-  document.addEventListener(
-    'click',
-    (event: MouseEvent) => {
+document.addEventListener(
+  'pointerdown',
+
+  (event: PointerEvent) => {
 
       try {
 
@@ -66,10 +67,10 @@ private _initializeDocumentTracking(): void {
           return;
         }
 
-        console.log(
-          'FRED RAW CLICK:',
-          target
-        );
+console.log(
+  'FRED RAW POINTER:',
+  target
+);
 
         let documentUrl = '';
 
