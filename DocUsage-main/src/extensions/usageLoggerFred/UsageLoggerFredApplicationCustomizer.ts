@@ -53,181 +53,45 @@ public async onInit(): Promise<void> {
 
 private _initializeDocumentTracking(): void {
 
-document.addEventListener(
-  'pointerdown',
+  let lastUrl =
+    window.location.href;
 
-  (event: PointerEvent) => {
+  console.log(
+    'FRED DOCUMENT URL TRACKING REGISTERED'
+  );
+
+  window.setInterval(
+    () => {
 
       try {
 
-        const target =
-          event.target as HTMLElement;
+        const currentUrl =
+          window.location.href;
 
-        if (!target) {
+        // Nothing changed
+        if (
+          currentUrl === lastUrl
+        ) {
           return;
         }
 
-console.log(
-  'FRED RAW POINTER:',
-  target
-);
-
-        let documentUrl = '';
+        lastUrl =
+          currentUrl;
 
 
-        // =====================================================
-        // 1. NORMAL LINK
-        // =====================================================
+        console.log(
+          'FRED URL CHANGED:',
+          currentUrl
+        );
 
-        const directAnchor =
-          target.closest('a') as HTMLAnchorElement;
 
+        // Check whether new SharePoint URL
+        // contains a document
         if (
-          directAnchor &&
-          directAnchor.href
+          !this._isDocument(
+            currentUrl
+          )
         ) {
-
-          documentUrl =
-            directAnchor.href;
-
-        }
-
-
-        // =====================================================
-        // 2. EVENT PATH
-        // =====================================================
-
-        if (!documentUrl) {
-
-          const eventPath =
-            event.composedPath();
-
-          for (
-            const item of eventPath
-          ) {
-
-            if (
-              item instanceof HTMLAnchorElement &&
-              item.href
-            ) {
-
-              documentUrl =
-                item.href;
-
-              break;
-
-            }
-
-          }
-
-        }
-
-
-        // =====================================================
-        // 3. SHAREPOINT MODERN LIBRARY ROW
-        // =====================================================
-
-        if (!documentUrl) {
-
-          const row =
-            target.closest(
-              '[role="row"]'
-            ) as HTMLElement;
-
-          if (row) {
-
-            const anchors =
-              row.querySelectorAll(
-                'a[href]'
-              );
-
-            for (
-              let i = 0;
-              i < anchors.length;
-              i++
-            ) {
-
-              const rowAnchor =
-                anchors[i] as HTMLAnchorElement;
-
-              if (
-                rowAnchor.href &&
-                this._isDocument(
-                  rowAnchor.href
-                )
-              ) {
-
-                documentUrl =
-                  rowAnchor.href;
-
-                break;
-
-              }
-
-            }
-
-          }
-
-        }
-
-
-        // =====================================================
-        // 4. SHAREPOINT DATA CONTAINER
-        // =====================================================
-
-        if (!documentUrl) {
-
-          const container =
-            target.closest(
-              '[data-automationid], [data-selection-index]'
-            ) as HTMLElement;
-
-          if (container) {
-
-            const anchors =
-              container.querySelectorAll(
-                'a[href]'
-              );
-
-            for (
-              let i = 0;
-              i < anchors.length;
-              i++
-            ) {
-
-              const containerAnchor =
-                anchors[i] as HTMLAnchorElement;
-
-              if (
-                containerAnchor.href &&
-                this._isDocument(
-                  containerAnchor.href
-                )
-              ) {
-
-                documentUrl =
-                  containerAnchor.href;
-
-                break;
-
-              }
-
-            }
-
-          }
-
-        }
-
-
-        // =====================================================
-        // NO URL FOUND
-        // =====================================================
-
-        if (!documentUrl) {
-
-          console.log(
-            'FRED CLICK - NO DOCUMENT URL FOUND'
-          );
 
           return;
 
@@ -235,37 +99,13 @@ console.log(
 
 
         console.log(
-          'FRED DOCUMENT CLICK:',
-          documentUrl
+          'FRED DOCUMENT NAVIGATION DETECTED:',
+          currentUrl
         );
 
 
-        // =====================================================
-        // VERIFY DOCUMENT
-        // =====================================================
-
-        if (
-          !this._isDocument(
-            documentUrl
-          )
-        ) {
-
-          console.log(
-            'FRED URL NOT RECOGNIZED AS DOCUMENT:',
-            documentUrl
-          );
-
-          return;
-
-        }
-
-
-        // =====================================================
-        // LOG DOCUMENT
-        // =====================================================
-
         this._logDocumentInteraction(
-          documentUrl
+          currentUrl
         )
         .catch(
           (error) => {
@@ -287,7 +127,7 @@ console.log(
       } catch (error) {
 
         console.error(
-          'FRED DOCUMENT CLICK DETECTION FAILED:',
+          'FRED DOCUMENT URL TRACKING ERROR:',
           error
         );
 
@@ -295,12 +135,7 @@ console.log(
 
     },
 
-    true
-  );
-
-
-  console.log(
-    'FRED MODERN DOCUMENT TRACKING LISTENER REGISTERED'
+    500
   );
 
 }
