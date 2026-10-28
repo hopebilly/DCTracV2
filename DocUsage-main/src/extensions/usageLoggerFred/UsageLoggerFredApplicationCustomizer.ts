@@ -51,73 +51,258 @@ public async onInit(): Promise<void> {
   // DOCUMENT TRACKING
   // ============================================================
 
-  private _initializeDocumentTracking(): void {
+private _initializeDocumentTracking(): void {
 
-    document.addEventListener(
-      'click',
+  document.addEventListener(
+    'click',
+    (event: MouseEvent) => {
 
-      (event: MouseEvent) => {
+      try {
 
-        try {
+        const target =
+          event.target as HTMLElement;
 
-          const target =
-            event.target as HTMLElement;
+        if (!target) {
+          return;
+        }
 
-          if (!target) {
-            return;
+        console.log(
+          'FRED RAW CLICK:',
+          target
+        );
+
+        let documentUrl = '';
+
+
+        // =====================================================
+        // 1. NORMAL LINK
+        // =====================================================
+
+        const directAnchor =
+          target.closest('a') as HTMLAnchorElement;
+
+        if (
+          directAnchor &&
+          directAnchor.href
+        ) {
+
+          documentUrl =
+            directAnchor.href;
+
+        }
+
+
+        // =====================================================
+        // 2. EVENT PATH
+        // =====================================================
+
+        if (!documentUrl) {
+
+          const eventPath =
+            event.composedPath();
+
+          for (
+            const item of eventPath
+          ) {
+
+            if (
+              item instanceof HTMLAnchorElement &&
+              item.href
+            ) {
+
+              documentUrl =
+                item.href;
+
+              break;
+
+            }
+
           }
 
-
-          // Find the closest clicked link
-const anchor =
-  target.closest('a') as HTMLAnchorElement;
-
-if (!anchor || !anchor.href) {
-  return;
-}
-
-console.log(
-  'FRED DOCUMENT CLICK:',
-  anchor.href,
-  anchor.innerText
-);
-
-const documentUrl =
-  anchor.href;
+        }
 
 
-          // Only continue when the clicked URL is a document
-          if (!this._isDocument(documentUrl)) {
-            return;
+        // =====================================================
+        // 3. SHAREPOINT MODERN LIBRARY ROW
+        // =====================================================
+
+        if (!documentUrl) {
+
+          const row =
+            target.closest(
+              '[role="row"]'
+            ) as HTMLElement;
+
+          if (row) {
+
+            const anchors =
+              row.querySelectorAll(
+                'a[href]'
+              );
+
+            for (
+              let i = 0;
+              i < anchors.length;
+              i++
+            ) {
+
+              const rowAnchor =
+                anchors[i] as HTMLAnchorElement;
+
+              if (
+                rowAnchor.href &&
+                this._isDocument(
+                  rowAnchor.href
+                )
+              ) {
+
+                documentUrl =
+                  rowAnchor.href;
+
+                break;
+
+              }
+
+            }
+
           }
 
+        }
 
-          this._logDocumentInteraction(
+
+        // =====================================================
+        // 4. SHAREPOINT DATA CONTAINER
+        // =====================================================
+
+        if (!documentUrl) {
+
+          const container =
+            target.closest(
+              '[data-automationid], [data-selection-index]'
+            ) as HTMLElement;
+
+          if (container) {
+
+            const anchors =
+              container.querySelectorAll(
+                'a[href]'
+              );
+
+            for (
+              let i = 0;
+              i < anchors.length;
+              i++
+            ) {
+
+              const containerAnchor =
+                anchors[i] as HTMLAnchorElement;
+
+              if (
+                containerAnchor.href &&
+                this._isDocument(
+                  containerAnchor.href
+                )
+              ) {
+
+                documentUrl =
+                  containerAnchor.href;
+
+                break;
+
+              }
+
+            }
+
+          }
+
+        }
+
+
+        // =====================================================
+        // NO URL FOUND
+        // =====================================================
+
+        if (!documentUrl) {
+
+          console.log(
+            'FRED CLICK - NO DOCUMENT URL FOUND'
+          );
+
+          return;
+
+        }
+
+
+        console.log(
+          'FRED DOCUMENT CLICK:',
+          documentUrl
+        );
+
+
+        // =====================================================
+        // VERIFY DOCUMENT
+        // =====================================================
+
+        if (
+          !this._isDocument(
             documentUrl
-          ).catch((error) => {
+          )
+        ) {
+
+          console.log(
+            'FRED URL NOT RECOGNIZED AS DOCUMENT:',
+            documentUrl
+          );
+
+          return;
+
+        }
+
+
+        // =====================================================
+        // LOG DOCUMENT
+        // =====================================================
+
+        this._logDocumentInteraction(
+          documentUrl
+        )
+        .catch(
+          (error) => {
+
+            console.error(
+              'FRED DOCUMENT LOGGING FAILED:',
+              error
+            );
 
             Log.warn(
               LOG_SOURCE,
               `Document logging failed: ${error}`
             );
 
-          });
+          }
+        );
 
-        } catch (error) {
 
-          Log.warn(
-            LOG_SOURCE,
-            `Document click detection failed: ${error}`
-          );
+      } catch (error) {
 
-        }
+        console.error(
+          'FRED DOCUMENT CLICK DETECTION FAILED:',
+          error
+        );
 
-      },
+      }
 
-      true
-    );
+    },
 
-  }
+    true
+  );
+
+
+  console.log(
+    'FRED MODERN DOCUMENT TRACKING LISTENER REGISTERED'
+  );
+
+}
 
 
   // ============================================================
